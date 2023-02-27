@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import './style.dart' as style;
 import 'package:http/http.dart' as http;
 import 'dart:convert';  //유틸리티
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 void main() {
   runApp( MaterialApp(
@@ -52,13 +54,46 @@ class _MyAppState extends State<MyApp> {
       data.add(a);
     });
   }
+  var userContent;
+  addUpload(a){
+    setState(() {
+      userContent = a;
+    });
+  }
+
+  addMyData(){
+    var myData = {
+      'id': data.length,
+      'image': userImage,
+      'likes': 5,
+      'date': 'July 25',
+      'content': userContent,
+      'liked': false,
+      'user': 'John Kim'
+    };
+    setState(() {
+      data.insert(0, myData);
+    });
+  }
+
+  var userImage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [IconButton(
-            onPressed: (){},
+            onPressed: () async {
+              var picker = ImagePicker();
+              var image = await picker.pickImage(source: ImageSource.gallery); //이미지 픽커 사용법
+              if (image != null){
+                userImage = File(image.path);
+              }
+
+              Navigator.push(context,
+              MaterialPageRoute(builder: (context) {return Upload(userImage : userImage,data: data, addMyData:addMyData,addUpload:addUpload);},) //return 밖에 없느면 {}쓰지않고 ==>
+              );
+            },
             icon: Icon(Icons.add_box_outlined))],
         title: Text('Instagram', style: TextStyle(color: Colors.black, fontSize: 20,fontWeight: FontWeight.bold),)),
       body: [page(data: data, addData : addData), Text('숍')][tab],
@@ -148,5 +183,44 @@ class _pageState extends State<page> {
   }
 }
 
+class Upload extends StatelessWidget {
+  const Upload({Key? key,this.userImage, this.addMyData,this.addUpload,this.data}) : super(key: key);
+  final userImage,addMyData,addUpload,data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+                padding: EdgeInsets.all(10), height: 300,
+                child: Image.file(userImage)),
+          ),
+          TextField(
+            onChanged: (value) {addUpload(value);},
+            decoration: InputDecoration(
+                labelText: '글내용'),
+          ),
+          Row(mainAxisAlignment: MainAxisAlignment.center ,
+            children: [
+            IconButton(onPressed: () {Navigator.pop(context);}, icon: Icon(Icons.close)),
+            IconButton(onPressed: () {addMyData;}, icon: Icon(Icons.check)),  //업로드 안됨
+          ],),
+        ],
+      ),
+    );
+  }
+}
+
+/*MaterialApp(
+    initialRoute: '/',
+    routes: {
+      '/': (context) => Text('첫페이지'),
+      '/detail': (context) => Text('둘째페이지'),
+    },
+);  페이지가 많아지면 라우트 방식으로 관리 가능,  Navigator.pushNamed(context, '/detail');로 페이지이동*/
 
 
