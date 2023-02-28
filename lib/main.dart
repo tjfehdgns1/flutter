@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';  //유틸리티
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp( MaterialApp(
@@ -34,8 +35,8 @@ class _MyAppState extends State<MyApp> {
       data = result;
     });
     print(site.body);
-    print(result[0]['likes']);
   }  //initState 안에 async 사용불가
+
   @override
   void initState() {
     super.initState();
@@ -75,12 +76,21 @@ class _MyAppState extends State<MyApp> {
       data.insert(0, myData);
     });
   }
+
   addLikes(a){
     setState(() {
       data[a]['likes']++;
     });
   }
+
   var userImage;
+
+  saveData() async {
+    var storage = await SharedPreferences.getInstance();  //이미지는 저장 안되는 캐싱 패키지를 사용할것
+    storage.setString('name', 'Seol');   //map은 jsonEncoding 이용하여 저장
+    var result = storage.getString('name');
+    print(result);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +174,7 @@ class _pageState extends State<page> {
       itemCount: widget.data.length,
       itemBuilder: (context, index) {
         return Column(children: [
-          widget.data[index]['image'].runtimeType == String?
+          widget.data[index]['image'].runtimeType == String ?
           Image.network(widget.data[index]['image']) : Image.file(widget.data[index]['image']),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,12 +186,16 @@ class _pageState extends State<page> {
 
                 ],
               ),
-              Text(widget.data[index]['user'] , textAlign: TextAlign.start,),
+              GestureDetector(child:Text(widget.data[index]['user'] , textAlign: TextAlign.start,),
+              onLongPress: () {
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => Profile()));
+              },), //Text위젯은 onpressed가 없음
               Text(widget.data[index]['content'], textAlign: TextAlign.start),
             ],)
         ]);
       },
-    );
+      );
 
     } else {
       return Text('로딩중');
@@ -232,5 +246,17 @@ class Upload extends StatelessWidget {
       '/detail': (context) => Text('둘째페이지'),
     },
 );  페이지가 많아지면 라우트 방식으로 관리 가능,  Navigator.pushNamed(context, '/detail');로 페이지이동*/
+
+class Profile extends StatelessWidget {
+  const Profile({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+
+    );
+  }
+}
+
 
 
