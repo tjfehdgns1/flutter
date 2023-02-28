@@ -65,17 +65,21 @@ class _MyAppState extends State<MyApp> {
     var myData = {
       'id': data.length,
       'image': userImage,
-      'likes': 5,
+      'likes': 0,
       'date': 'July 25',
       'content': userContent,
       'liked': false,
-      'user': 'John Kim'
+      'user': 'Me'
     };
     setState(() {
       data.insert(0, myData);
     });
   }
-
+  addLikes(a){
+    setState(() {
+      data[a]['likes']++;
+    });
+  }
   var userImage;
 
   @override
@@ -96,7 +100,7 @@ class _MyAppState extends State<MyApp> {
             },
             icon: Icon(Icons.add_box_outlined))],
         title: Text('Instagram', style: TextStyle(color: Colors.black, fontSize: 20,fontWeight: FontWeight.bold),)),
-      body: [page(data: data, addData : addData), Text('숍')][tab],
+      body: [page(data: data, addData : addData, addLikes : addLikes), Text('숍')][tab],
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: true,
         showUnselectedLabels: false,
@@ -119,8 +123,8 @@ class _MyAppState extends State<MyApp> {
 
 //홈페이지
 class page extends StatefulWidget {
-  const page({Key? key, this.data, this.addData}) : super(key: key);
-  final data, addData;
+  const page({Key? key, this.data, this.addData,this.addLikes}) : super(key: key);
+  final data, addData, addLikes;
 
   @override
   State<page> createState() => _pageState();
@@ -160,14 +164,16 @@ class _pageState extends State<page> {
       itemCount: widget.data.length,
       itemBuilder: (context, index) {
         return Column(children: [
-          Image.network(widget.data[index]['image']),
+          widget.data[index]['image'].runtimeType == String?
+          Image.network(widget.data[index]['image']) : Image.file(widget.data[index]['image']),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  IconButton(onPressed: () {}, icon: Icon(Icons.thumb_up_sharp)),  //좋아요 state 못바꿈
-                  Text('${widget.data[index]['likes'].toString()}  좋아요')
+                  IconButton(onPressed: () {widget.addLikes(index);}, icon: Icon(Icons.thumb_up_sharp)),
+                  Text('${widget.data[index]['likes'].toString()}  좋아요'),
+
                 ],
               ),
               Text(widget.data[index]['user'] , textAlign: TextAlign.start,),
@@ -207,7 +213,11 @@ class Upload extends StatelessWidget {
           Row(mainAxisAlignment: MainAxisAlignment.center ,
             children: [
             IconButton(onPressed: () {Navigator.pop(context);}, icon: Icon(Icons.close)),
-            IconButton(onPressed: () {addMyData;}, icon: Icon(Icons.check)),  //업로드 안됨
+            IconButton(onPressed: () {
+              addMyData();
+              Navigator.pop(context);
+              }, icon: Icon(Icons.check)),
+
           ],),
         ],
       ),
