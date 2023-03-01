@@ -5,12 +5,19 @@ import 'dart:convert';  //유틸리티
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp( MaterialApp(
-    theme: style.theme,
-      home: MyApp()
-    )
+  runApp(
+      MultiProvider(providers: [
+        ChangeNotifierProvider(create: (context) => Store1(),),
+        ChangeNotifierProvider(create: (context) => Store2(),)
+      ],
+        child: MaterialApp(
+            theme: style.theme,
+            home: MyApp()
+        ),
+      )
   );
 }
 
@@ -95,38 +102,38 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [IconButton(
-            onPressed: () async {
-              var picker = ImagePicker();
-              var image = await picker.pickImage(source: ImageSource.gallery); //이미지 픽커 사용법
-              if (image != null){
-                userImage = File(image.path);
-              }
+        appBar: AppBar(
+            actions: [IconButton(
+                onPressed: () async {
+                  var picker = ImagePicker();
+                  var image = await picker.pickImage(source: ImageSource.gallery); //이미지 픽커 사용법
+                  if (image != null){
+                    userImage = File(image.path);
+                  }
 
-              Navigator.push(context,
-              MaterialPageRoute(builder: (context) {return Upload(userImage : userImage,data: data, addMyData:addMyData,addUpload:addUpload);},) //return 밖에 없느면 {}쓰지않고 ==>
-              );
-            },
-            icon: Icon(Icons.add_box_outlined))],
-        title: Text('Instagram', style: TextStyle(color: Colors.black, fontSize: 20,fontWeight: FontWeight.bold),)),
-      body: [page(data: data, addData : addData, addLikes : addLikes), Text('숍')][tab],
-      bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: true,
-        showUnselectedLabels: false,
-        currentIndex: tab,
-        onTap: _onItemTapped,
-        items: <BottomNavigationBarItem>[
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_bag_outlined),
-          label: 'Shopping',
-          ),
-        ],
-      ) //동적ui만드는법 1.state에 현재UI상태 저장 2.state에 따라 UI 어떵게 보일지 작성 3. 유저가 state 조작
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {return Upload(userImage : userImage,data: data, addMyData:addMyData,addUpload:addUpload);},) //return 밖에 없느면 {}쓰지않고 ==>
+                  );
+                },
+                icon: Icon(Icons.add_box_outlined))],
+            title: Text('Instagram', style: TextStyle(color: Colors.black, fontSize: 20,fontWeight: FontWeight.bold),)),
+        body: [page(data: data, addData : addData, addLikes : addLikes), Text('숍')][tab],
+        bottomNavigationBar: BottomNavigationBar(
+          showSelectedLabels: true,
+          showUnselectedLabels: false,
+          currentIndex: tab,
+          onTap: _onItemTapped,
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_bag_outlined),
+              label: 'Shopping',
+            ),
+          ],
+        ) //동적ui만드는법 1.state에 현재UI상태 저장 2.state에 따라 UI 어떵게 보일지 작성 3. 유저가 state 조작
     );
   }
 }
@@ -249,14 +256,72 @@ class Upload extends StatelessWidget {
 
 class Profile extends StatelessWidget {
   const Profile({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      appBar: AppBar(
+          title: Text(context.watch<Store1>().name),
+          titleTextStyle: TextStyle(color: Colors.black)),
+      body:Column(
+        children: [
+          Row (
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CircleAvatar(
+                backgroundImage:AssetImage('assets/images/images.png'),
+                backgroundColor: Colors.grey,
+                radius: 30,
+              ),
+              Text('                 팔로워 ${context.watch<Store1>().follower} 명',
+                  textScaleFactor: 1.3),
+              ElevatedButton(
+                  onPressed: (){
+                    context.read<Store1>().addFollower();
+                    },
+                  child: Text('팔로우')
+              ),
+            ],
+          ),
+          TextButton(onPressed: () {
+            context.read<Store1>().getData();
+          }, child: Text('Load'))
+        ],
+      ),
 
     );
   }
 }
 
+class Store1 extends ChangeNotifier{
+  var name = 'me';
+  changeName(){
+    name = 'Me2'; //저장소안에서 state변경
+    notifyListeners(); //setState같은것
+  }
+  var follower = 0;
+  bool isFollowed = false;
+  addFollower(){
+    if(isFollowed == false){
+      follower++;
+      isFollowed = true;
+    }
+    else{
+      follower--;
+      isFollowed = false;
+    }
+    notifyListeners();
+  }
+  var profileImage = [];
+  getData() async {
+    var result = await http.get(Uri.parse('https://dart-lang.github.io/linter/lints/unnecessary_getters_setters.html'));
+    var result2 = jsonDecode(result.body);
+    profileImage = result2;
+    notifyListeners();
+  }
+}
+
+class Store2 extends ChangeNotifier{
+  
+}
 
 
