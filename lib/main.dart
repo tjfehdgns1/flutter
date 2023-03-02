@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import './style.dart' as style;
 import 'package:http/http.dart' as http;
 import 'dart:convert';  //유틸리티
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';  //갤러리에서 가져오기
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
@@ -262,32 +262,17 @@ class Profile extends StatelessWidget {
       appBar: AppBar(
           title: Text(context.watch<Store1>().name),
           titleTextStyle: TextStyle(color: Colors.black)),
-      body:Column(
-        children: [
-          Row (
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CircleAvatar(
-                backgroundImage:AssetImage('assets/images/images.png'),
-                backgroundColor: Colors.grey,
-                radius: 30,
-              ),
-              Text('                 팔로워 ${context.watch<Store1>().follower} 명',
-                  textScaleFactor: 1.3),
-              ElevatedButton(
-                  onPressed: (){
-                    context.read<Store1>().addFollower();
-                    },
-                  child: Text('팔로우')
-              ),
-            ],
-          ),
-          TextButton(onPressed: () {
-            context.read<Store1>().getData();
-          }, child: Text('Load'))
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: ProfileHeader(),),
+          SliverGrid(
+              delegate: SliverChildBuilderDelegate((context, index) =>
+                  Container(
+                      child: Image.network('${context.read<Store1>().profileImage[index]}')),
+                  childCount: context.watch<Store1>().profileImage.length),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4))
         ],
       ),
-
     );
   }
 }
@@ -313,9 +298,10 @@ class Store1 extends ChangeNotifier{
   }
   var profileImage = [];
   getData() async {
-    var result = await http.get(Uri.parse('https://dart-lang.github.io/linter/lints/unnecessary_getters_setters.html'));
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/profile.json'));
     var result2 = jsonDecode(result.body);
     profileImage = result2;
+    print(profileImage);
     notifyListeners();
   }
 }
@@ -324,4 +310,35 @@ class Store2 extends ChangeNotifier{
   
 }
 
+class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          child: Row (
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CircleAvatar(
+                backgroundImage:AssetImage('assets/images/images.png'),
+                backgroundColor: Colors.grey,
+                radius: 30,
+              ),
+              Text('                 팔로워 ${context.watch<Store1>().follower} 명',
+                  textScaleFactor: 1.3),
+              ElevatedButton(
+                  onPressed: (){
+                    context.read<Store1>().addFollower();
+                  },
+                  child: Text('팔로우')
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
