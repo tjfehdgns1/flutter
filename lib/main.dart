@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 
+import 'notification.dart';
+
 void main() {
   runApp(
       MultiProvider(providers: [
@@ -47,6 +49,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    initNotification(context);
     getData();
   } //  특정 위젯이 로드되자마자 코드를 실행
 
@@ -102,6 +105,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showNotification();
+            },
+            child: Text('+')),
         appBar: AppBar(
             actions: [IconButton(
                 onPressed: () async {
@@ -117,7 +125,11 @@ class _MyAppState extends State<MyApp> {
                 },
                 icon: Icon(Icons.add_box_outlined))],
             title: Text('Instagram', style: TextStyle(color: Colors.black, fontSize: 20,fontWeight: FontWeight.bold),)),
-        body: [page(data: data, addData : addData, addLikes : addLikes), Text('숍')][tab],
+        body: [
+          page(data: data, addData : addData, addLikes : addLikes),
+          Shopping(),
+        ]
+        [tab],
         bottomNavigationBar: BottomNavigationBar(
           showSelectedLabels: true,
           showUnselectedLabels: false,
@@ -195,6 +207,7 @@ class _pageState extends State<page> {
               ),
               GestureDetector(child:Text(widget.data[index]['user'] , textAlign: TextAlign.start,),
               onLongPress: () {
+                context.read<Store1>().getData();
                 Navigator.push(context,
                   MaterialPageRoute(builder: (context) => Profile()));
               },), //Text위젯은 onpressed가 없음
@@ -342,3 +355,20 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
+class Shopping extends StatelessWidget {
+  const Shopping({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text.rich(
+          TextSpan(
+              text: 'This is',style: TextStyle(fontSize: 20),
+              children: <TextSpan>[
+                TextSpan(text: ' Shopping', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                TextSpan(text: ' page', style: TextStyle(fontSize: 20))
+              ]
+          )),
+    );
+  }
+}
