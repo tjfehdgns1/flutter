@@ -6,10 +6,15 @@ import 'package:image_picker/image_picker.dart';  //갤러리에서 가져오기
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'notification.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); // Firebase 설치
   runApp(
       MultiProvider(providers: [
         ChangeNotifierProvider(create: (context) => Store1(),),
